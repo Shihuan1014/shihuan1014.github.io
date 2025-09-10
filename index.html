@@ -1,7 +1,172 @@
-<html>
-<body>
-  <div style="font-size:36;width:100%;height:100%;padding:30px;">
-    Welcome to shihuan's site!
-  </div>
-</body>
+<html lang="zh-CN">
+  <head>
+    <title>Shihuan's Blog</title>
+  </head>
+  <style>
+    .fixed-header {
+      position: fixed;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      max-width: 1000px;
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .fixed-header-item {
+      padding: 15px 30px;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 70px;
+      left: 0;
+      background: white;
+      border-radius: 0 0 5px 5px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-1px);
+      transition: all 0.3s ease;
+      z-index: 1001;
+    }
+
+    .fixed-header-item:hover .dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown .article {
+      padding: 15px 20px;
+    }
+
+    .dropdown .article:hover {
+      background: gray;
+    }
+
+    .dropdown .level1 {
+      padding: 15px 20px;
+      position: relative;
+    }
+
+    .dropdown .level1 .level2 {
+      position: absolute;
+      left: 105%;
+      top: 0;
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(20px);
+      transition: all 0.3s ease;
+      z-index: 1002;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dropdown .level1:hover .level2 {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(0);
+    }
+  </style>
+  <body>
+    <div id="menu" class="fixed-header"></div>
+    <div style="margin: 40px" id="markdown-viewer"></div>
+  </body>
+
+  <script src="https://cdn.bootcdn.net/ajax/libs/marked/16.2.0/lib/marked.umd.js"></script>
+  <script>
+    function mockLoadFile(filePath) {
+      console.log(filePath)
+      if (filePath === './docs/kafka/Consumer/ConsumerCoordinator.md') {
+        return "Test"
+      }
+      if (filePath === './docs/kafka/Consumer/Fetcher.md') {
+        return "Test2"
+      }
+      if (filePath === './docs/menu') {
+        return "[{\"name\": \"kafka\", \"items\": [{\"name\": \"Consumer\", \"items\": [{\"name\": \"ConsumerCoordinator.md\"}, {\"name\": \"Fetcher.md\"}]}]}]"
+      }
+    }
+
+    async function loadFile(filePath) {
+      if (window.location.protocol === 'file:') {
+        return mockLoadFile(filePath)
+      }
+      const response = await fetch(filePath)
+      return await response.text()
+    }
+
+    async function renderMenu() {
+      const menu = JSON.parse(await loadFile("./docs/menu"))
+      const menuView = document.getElementById('menu')
+      let menuContent = ""
+      menu.forEach(level1 => {
+        nav_item_html = ''
+        level1.items.forEach(level2 => {
+          level2_html = ''
+          if (level2.items != null) {
+            level2_html += "<div class=\"level2\">"
+            level2.items.forEach(level3 => {
+              level2_html += `<div class="article" id="${level1.name + "/" + level2.name + "/" + level3.name}">${level3.name}</div>`
+            })
+            level2_html += "</div>"
+          }
+          nav_item_html +=
+                  `<div class="level1 ${level2.items == null ? "article" : ""}">
+                        <div>${level2.name}</div>
+                        ${level2_html}
+                  </div>`
+        })
+        menuContent +=
+                `<div class='fixed-header-item'><div class="title">${level1.name}</div>
+                    <div class="dropdown">
+                        ${nav_item_html}
+                    </div>
+                </div>
+                `
+      })
+      menuView.innerHTML = menuContent
+    }
+    renderMenu()
+
+    async function loadMarkdownFile(filePath) {
+      const htmlPreview = document.getElementById('markdown-viewer')
+      try {
+        htmlPreview.innerHTML = marked.parse(await loadFile(filePath))
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    loadMarkdownFile("./docs/kafka/Consumer/ConsumerCoordinator.md")
+
+    document.addEventListener('DOMContentLoaded', function() {
+      let interval = setInterval(() => {
+        let elements = document.querySelectorAll('.article')
+        elements.forEach(element => {
+          element.addEventListener('click', function (e) {
+            console.log(e)
+            const articleElement = e.target.closest('.article');
+            if (articleElement) {
+              const id = articleElement.id;
+              loadMarkdownFile("./docs/" + id)
+            }
+          })
+        })
+        if (elements.length > 0) {
+          clearInterval(interval)
+        }
+      }, 100)
+    })
+  </script>
 </html>
