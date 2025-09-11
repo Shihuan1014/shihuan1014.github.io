@@ -107,7 +107,17 @@
       return await response.text()
     }
 
-    async function renderMenu() {
+    async function loadMarkdownFile(filePath) {
+      const htmlPreview = document.getElementById('markdown-viewer')
+      try {
+        htmlPreview.innerHTML = marked.parse(await loadFile(filePath))
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    const fileList = []
+    async function renderMenuAndInitArticle() {
       const menu = JSON.parse(await loadFile("./docs/menu"))
       const menuView = document.getElementById('menu')
       let menuContent = ""
@@ -118,7 +128,9 @@
           if (level2.items != null) {
             level2_html += "<div class=\"level2\">"
             level2.items.forEach(level3 => {
-              level2_html += `<div class="article" id="${level1.name + "/" + level2.name + "/" + level3.name}">${level3.name}</div>`
+              var filePath = level1.name + "/" + level2.name + "/" + level3.name
+              fileList.push(filePath)
+              level2_html += `<div class="article" id="${filePath}">${level3.name}</div>`
             })
             level2_html += "</div>"
           }
@@ -137,18 +149,10 @@
                 `
       })
       menuView.innerHTML = menuContent
+      await loadMarkdownFile("./docs/" + fileList[Math.floor(Math.random() * fileList.length)])
     }
-    renderMenu()
 
-    async function loadMarkdownFile(filePath) {
-      const htmlPreview = document.getElementById('markdown-viewer')
-      try {
-        htmlPreview.innerHTML = marked.parse(await loadFile(filePath))
-      } catch (e) {
-        console.error(e)
-      }
-    }
-    loadMarkdownFile("./docs/kafka/Consumer/ConsumerCoordinator.md")
+    renderMenuAndInitArticle()
 
     document.addEventListener('DOMContentLoaded', function() {
       let interval = setInterval(() => {
