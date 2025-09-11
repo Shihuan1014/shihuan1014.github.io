@@ -27,7 +27,7 @@
 validateOffsetsIfNeeded()方法先检查当前消费位点是否合法，如果位点所在消息不存在且配置了reset policy，则需要自动重置位点，有两种情况：
 
 + 当前分区消费位点大于endOffset，重置到endOffset（指定offset）
-+ 其它情况根据reset policy重置到最早或者最老的消息位置（LATEST、EARLIEST）
++ 其它情况根据reset policy重置到最新或者最老的消息位置（LATEST、EARLIEST）
 
 位点重置不是同步进行的，而是把这个分区的SubscriptionState的状态标记成AWAIT_FETCH，后面的resetOffsetsIfNeeded()会检查哪些分区需要reset。
 

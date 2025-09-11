@@ -78,6 +78,47 @@
       visibility: visible;
       transform: translateX(0);
     }
+
+
+    #preview {
+      min-height: 400px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #f9f9f9;
+      overflow: auto;
+    }
+    .mermaid {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 5px;
+      overflow: auto;
+      text-align: center;
+    }
+    .code-block {
+      position: relative;
+      margin: 15px 0;
+    }
+    .code-block pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 5px;
+      overflow: auto;
+    }
+    .code-block::before {
+      content: attr(data-language);
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: #3498db;
+      color: white;
+      padding: 3px 10px;
+      font-size: 12px;
+      border-bottom-left-radius: 5px;
+      border-top-right-radius: 5px;
+    }
   </style>
   <body>
     <div id="menu" class="fixed-header"></div>
@@ -85,32 +126,47 @@
   </body>
 
   <script src="https://cdn.bootcdn.net/ajax/libs/marked/16.2.0/lib/marked.umd.js"></script>
-  <script>
-    function mockLoadFile(filePath) {
-      console.log(filePath)
-      if (filePath === './docs/kafka/Consumer/ConsumerCoordinator.md') {
-        return "Test"
-      }
-      if (filePath === './docs/kafka/Consumer/Fetcher.md') {
-        return "Test2"
-      }
-      if (filePath === './docs/menu') {
-        return "[{\"name\": \"kafka\", \"items\": [{\"name\": \"Consumer\", \"items\": [{\"name\": \"ConsumerCoordinator.md\"}, {\"name\": \"Fetcher.md\"}]}]}]"
-      }
-    }
+  <script src="https://cdn.bootcdn.net/ajax/libs/mermaid/11.9.0/mermaid.min.js"></script>
 
+  <script>
     async function loadFile(filePath) {
-      if (window.location.protocol === 'file:') {
-        return mockLoadFile(filePath)
-      }
       const response = await fetch(filePath)
       return await response.text()
     }
 
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      look: 'handDrawn',
+      themeVariables: {
+        fontFamily: 'Comic Sans MS',
+        lineColor: '#000000'
+      },
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+      }
+    });
+
+    const renderer = {
+      code(code) {
+        if (code.lang === 'mermaid') {
+          return `<div class="mermaid">${code.text}</div>`;
+        }
+
+        // 对于其他代码块，使用默认渲染
+        return `<div class="code-block" data-language="${code.lang}"><pre><code>${code.text}</code></pre></div>`;
+      }
+    };
+    marked.use({ renderer });
+
     async function loadMarkdownFile(filePath) {
       const htmlPreview = document.getElementById('markdown-viewer')
       try {
-        htmlPreview.innerHTML = marked.parse(await loadFile(filePath))
+        htmlPreview.innerHTML = await marked.parse(await loadFile(filePath))
+        mermaid.init(undefined, '.mermaid');
+        window.location.hash = '#' + filePath
       } catch (e) {
         console.error(e)
       }
@@ -130,7 +186,7 @@
             level2.items.forEach(level3 => {
               var filePath = level1.name + "/" + level2.name + "/" + level3.name
               fileList.push(filePath)
-              level2_html += `<div class="article" id="${filePath}">${level3.name}</div>`
+              level2_html += `<div class="article" id="${filePath}">${level3.name.replace('.md', '')}</div>`
             })
             level2_html += "</div>"
           }
@@ -149,9 +205,12 @@
                 `
       })
       menuView.innerHTML = menuContent
-      await loadMarkdownFile("./docs/" + fileList[Math.floor(Math.random() * fileList.length)])
+      if (window.location.hash != null && window.location.hash.startsWith('#./docs')) {
+        await loadMarkdownFile(window.location.hash.substring(1))
+      } else {
+        await loadMarkdownFile("./docs/" + fileList[Math.floor(Math.random() * fileList.length)])
+      }
     }
-
     renderMenuAndInitArticle()
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -159,7 +218,6 @@
         let elements = document.querySelectorAll('.article')
         elements.forEach(element => {
           element.addEventListener('click', function (e) {
-            console.log(e)
             const articleElement = e.target.closest('.article');
             if (articleElement) {
               const id = articleElement.id;
