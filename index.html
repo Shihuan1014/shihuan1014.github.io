@@ -23,6 +23,11 @@
 
     .fixed-header-item {
       padding: 15px 30px;
+      position: relative;
+    }
+
+    .fixed-header-item:not(:first-child) {
+      border-left: 1px solid gray;
     }
 
     .dropdown {
@@ -135,14 +140,14 @@
 
     .markdown-viewer {
       font-size: 14px;
-      margin: 40px;
+      margin: 80px 30px;
       word-wrap: break-word;
     }
     @media (max-width: 768px) {
       .markdown-viewer {
         font-size: 16px;
         word-wrap: break-word;
-        margin: 50px 10px;
+        margin: 80px 10px;
       }
     }
   </style>
