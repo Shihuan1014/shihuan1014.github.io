@@ -19,7 +19,6 @@
 ##### 2.1.1、JoinGroupIfNeeded
 
 调用链：
-
 + KafkaConsumer.poll() 
 + KafkaConsumer.updateAssignmentMetadataIfNeeded() 
 + ConsumerCoordinator.poll(Timer timer, boolean waitForJoinGroup)
@@ -84,7 +83,6 @@ requestRejoin()标记AbstractCoordinator.rejoinNeeded=true，下次Coordinator.p
 #### 2.2、消费位点自动提交
 
 调用链：
-
 + KafkaConsumer.poll() 
 + KafkaConsumer.updateAssignmentMetadataIfNeeded() 
 + ConsumerCoordinator.poll(Timer timer, boolean waitForJoinGroup)

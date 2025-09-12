@@ -17,7 +17,6 @@
 目的是将所订阅的Topic分区的消费位点重置到commited position，或者如果找不到位点的话需要根据auto.offset.reset策略重置。
 
 调用链：
-
 + KafkaConsumer.poll(Timer timer, boolean includeMetadataInTimeout)
 + updateAssignmentMetadataIfNeeded(final Timer timer, final boolean waitForJoinGroup)
 + updateFetchPositions(final Timer timer)
@@ -38,7 +37,6 @@ SubscriptionState的好处是通过分区状态将事件归一，当这个事件
 #### 2.2、数据拉取
 
 调用链：
-
 + KafkaConsumer.poll(Timer timer, boolean includeMetadataInTimeout)
 + Fetcher.pollForFetches(timer)
 + fetcher.collectFetch() 收集之前fetch的结果，如果有消息则直接返回，没消息则往下走
